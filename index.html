@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>웬더-유타척도(WURS-25) 성인 ADHD 자가 진단 (어린 시절 회상)</title>
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --border-color: #e1e4e8;
+            --error-color: #ff6b6b;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.8rem;
+        }
+
+        .description {
+            background-color: #eef7ff;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            font-size: 0.95em;
+            color: #4a6fa5;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .question-item {
+            margin-bottom: 30px;
+            padding: 25px;
+            border-radius: 12px;
+            background-color: #fff;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
+        }
+        
+        .question-item.unanswered {
+            border: 2px solid var(--error-color);
+            background-color: #fff5f5;
+        }
+
+        .question-text {
+            font-size: 1.1em;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: block;
+            color: #2d3748;
+        }
+
+        /* 옵션 컨테이너 */
+        .options-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        /* 클릭 영역 (div로 변경하여 이벤트 충돌 방지) */
+        .option-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 12px 5px;
+            border-radius: 8px;
+            transition: background 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .option-box:hover {
+            background-color: #f7fafc;
+        }
+
+        /* 원형 체크박스 디자인 */
+        .custom-circle {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #cbd5e0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            background-color: white;
+            pointer-events: none; /* 클릭 통과 */
+        }
+
+        .custom-circle .inner-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            transform: scale(0);
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .option-text {
+            font-size: 0.85em;
+            color: #718096;
+            text-align: center;
+            line-height: 1.3;
+            pointer-events: none; /* 클릭 통과 */
+        }
+
+        /* 선택된 상태 스타일 (클래스로 제어) */
+        .option-box.selected .custom-circle {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+        }
+
+        .option-box.selected .custom-circle .inner-dot {
+            transform: scale(1);
+        }
+
+        .option-box.selected .option-text {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        /* 모바일 반응형 */
+        @media (max-width: 600px) {
+            .options-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .option-box {
+                flex-direction: row;
+                justify-content: flex-start;
+                padding: 15px;
+                background-color: #f8f9fa;
+                border: 1px solid #edf2f7;
+            }
+            .container {
+                padding: 20px;
+            }
+        }
+
+        .btn-submit {
+            display: block;
+            width: 100%;
+            padding: 18px;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-top: 40px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+            transition: transform 0.1s, background 0.2s;
+        }
+
+        .btn-submit:active {
+            transform: scale(0.98);
+        }
+
+        .btn-submit:hover {
+            background-color: #3a7bc8;
+        }
+
+        /* 결과 화면 */
+        #result-area {
+            display: none;
+            margin-top: 40px;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-danger {
+            background-color: #fff5f5;
+            border: 2px solid #fc8181;
+            color: #c53030;
+        }
+
+        .result-safe {
+            background-color: #f0fff4;
+            border: 2px solid #68d391;
+            color: #276749;
+        }
+        
+        .result-warning {
+            background-color: #fffaf0;
+            border: 2px solid #f6e05e;
+            color: #b7791f;
+        }
+
+        .score-display {
+            font-size: 2.5em;
+            font-weight: 800;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>WURS-25 어린 시절 회상</h1>
+    
+    <div class="description">
+        <p><strong>[안내]</strong> 이 검사는 현재가 아닌, <strong>초등학교 시절(만 7세~12세)의 내 모습</strong>을 회상하며 체크해주세요.</p>
+        <p>※ 모든 문항에 답변해주셔야 정확한 결과를 볼 수 있습니다.<br>※ 선택한 항목을 한 번 더 누르면 체크가 해제됩니다.</p>
+    </div>
+
+    <form id="wurs-form">
+        </form>
+
+    <button type="button" class="btn-submit" onclick="checkAndCalculate()">결과 확인하기</button>
+
+    <div id="result-area">
+        </div>
+</div>
+
+<script>
+    // 문항 데이터 (과거형, 사용자 친화적 문장으로 수정됨)
+    const questions = [
+        "1. 집중력이 부족하고, 쉽게 산만해졌습니다.",
+        "2. 걱정이 많고 자주 불안해했습니다.",
+        "3. 신경이 예민하거나, 손발을 가만히 두지 못했습니다.",
+        "4. 멍하니 있거나 공상에 잠길 때가 많았습니다.",
+        "5. 성질이 급하고 욱하는 기질이 있었습니다.",
+        "6. 화가 나면 분통을 터뜨리거나 심하게 떼를 썼습니다.",
+        "7. 끈기가 부족해 시작한 일을 끝까지 마치지 못했습니다.",
+        "8. 고집이 세고 자기주장이 강했습니다.",
+        "9. 슬프거나 우울하고, 불행하다고 느꼈습니다.",
+        "10. 부모님 말씀을 잘 안 듣거나 반항적이었습니다.",
+        "11. 나 자신을 낮게 평가하거나 자존감이 낮았습니다.",
+        "12. 별일 아닌 일에도 짜증을 잘 냈습니다.",
+        "13. 기분 변화(감정 기복)가 심했습니다.",
+        "14. 화를 자주 냈습니다.",
+        "15. 생각보다 행동이 앞서고 충동적이었습니다.",
+        "16. 또래 친구들에 비해 유치하거나 어리숙했습니다.",
+        "17. 죄책감이나 후회를 자주 했습니다.",
+        "18. 스스로 감정이나 행동을 조절하기 힘들었습니다.",
+        "19. 비이성적으로 행동하거나 떼를 쓰는 경향이 있었습니다.",
+        "20. 친구들에게 인기가 없거나, 친구 관계를 오래 유지하지 못했습니다.",
+        "21. 다른 사람의 입장에서 생각하는 걸 어려워했습니다.",
+        "22. 선생님께 꾸중을 듣거나 교무실에 자주 불려갔습니다.",
+        "23. 전반적으로 공부를 못하거나 배우는 게 느렸습니다.",
+        "24. 수학이나 숫자 계산을 특히 어려워했습니다.",
+        "25. 내 머리나 능력에 비해 성적이 잘 안 나왔습니다."
+    ];
+
+    const options = [
+        { label: "전혀 아니었다", score: 0 },
+        { label: "약간 그랬다", score: 1 },
+        { label: "보통이었다", score: 2 },
+        { label: "꽤 그랬다", score: 3 },
+        { label: "아주 많이 그랬다", score: 4 }
+    ];
+
+    const formContainer = document.getElementById('wurs-form');
+    // 사용자의 선택 상태를 저장하는 객체 { 질문인덱스: 점수 }
+    const userAnswers = {};
+
+    // 1. 초기화 및 렌더링
+    function init() {
+        questions.forEach((q, index) => {
+            const qDiv = document.createElement('div');
+            qDiv.className = 'question-item';
+            qDiv.id = `q-row-${index}`;
+
+            let html = `<span class="question-text">${q}</span>`;
+            html += `<div class="options-container">`;
+
+            options.forEach((opt, optIndex) => {
+                // label 태그 대신 div를 사용하여 이벤트 충돌 방지
+                html += `
+                    <div class="option-box" id="opt-box-${index}-${opt.score}" onclick="handleClick(${index}, ${opt.score})">
+                        <div class="custom-circle"><div class="inner-dot"></div></div>
+                        <span class="option-text">${opt.label}<br><span style="font-size:0.8em; opacity:0.6">(${opt.score}점)</span></span>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+            qDiv.innerHTML = html;
+            formContainer.appendChild(qDiv);
+        });
+    }
+
+    // 2. 클릭 핸들러 (토글 기능 포함)
+    window.handleClick = function(qIndex, score) {
+        // 이전에 선택된 값이 현재 클릭한 값과 같다면 -> 해제 (토글)
+        if (userAnswers[qIndex] === score) {
+            delete userAnswers[qIndex]; // 값 삭제
+            updateVisualState(qIndex, null); // UI 초기화
+        } else {
+            // 새로운 값 선택
+            userAnswers[qIndex] = score; // 값 저장
+            updateVisualState(qIndex, score); // UI 업데이트
+        }
+    };
+
+    // 3. UI 업데이트 함수
+    function updateVisualState(qIndex, selectedScore) {
+        // 해당 질문의 모든 옵션에서 'selected' 클래스 제거
+        options.forEach(opt => {
+            const box = document.getElementById(`opt-box-${qIndex}-${opt.score}`);
+            box.classList.remove('selected');
+        });
+
+        // 선택된 스코어가 있다면(null이 아니라면) 해당 박스에 클래스 추가
+        if (selectedScore !== null) {
+            const selectedBox = document.getElementById(`opt-box-${qIndex}-${selectedScore}`);
+            selectedBox.classList.add('selected');
+            
+            // 경고 빨간 테두리 제거 (만약 있었다면)
+            document.getElementById(`q-row-${qIndex}`).classList.remove('unanswered');
+        }
+    }
+
+    // 4. 점수 계산 및 유효성 검사
+    window.checkAndCalculate = function() {
+        let totalScore = 0;
+        let unansweredList = [];
+
+        // 모든 질문 순회하며 응답 확인
+        for (let i = 0; i < questions.length; i++) {
+            if (userAnswers[i] === undefined) {
+                unansweredList.push(i);
+                // 안 푼 문제 빨간 테두리 표시
+                document.getElementById(`q-row-${i}`).classList.add('unanswered');
+            } else {
+                totalScore += userAnswers[i];
+                document.getElementById(`q-row-${i}`).classList.remove('unanswered');
+            }
+        }
+
+        // 미응답이 하나라도 있으면 경고
+        if (unansweredList.length > 0) {
+            alert(`모든 항목에 체크해야 결과를 볼 수 있습니다.\n(미응답 문항: ${unansweredList.length}개)`);
+            
+            // 첫 번째 미응답 문항으로 스크롤 이동
+            const firstUnanswered = document.getElementById(`q-row-${unansweredList[0]}`);
+            firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
+        showResult(totalScore);
+    };
+
+    function showResult(score) {
+        const resultArea = document.getElementById('result-area');
+        let html = "";
+        
+        // 결과 판정 로직 (WURS 기준 46점)
+        if (score >= 46) {
+            resultArea.className = "result-danger";
+            html = `
+                <h2>⚠️ 성인 ADHD 가능성: 매우 높음</h2>
+                <div class="score-display">${score}점 <span style="font-size:0.5em; font-weight:normal; color:#666">/ 100점</span></div>
+                <hr style="border:0; border-top:1px solid #fc8181; margin: 20px 0; opacity:0.5">
+                <p style="font-weight:bold; margin-bottom:10px;">기준점(46점)을 초과하였습니다.</p>
+                <p style="text-align: left; font-size: 0.95em; line-height:1.7;">
+                    귀하의 점수는 어린 시절 ADHD 관련 기질이 뚜렷했음을 시사합니다.<br>
+                    어릴 때의 이런 특성이 성인기까지 지속되어 현재의 어려움을 유발하고 있을 가능성이 매우 높습니다.<br>
+                    <br>
+                    <strong>권장 사항:</strong> 이 결과를 캡처하여 정신건강의학과 전문의와 상담 시 제출하시면 진단에 큰 도움이 됩니다.
+                </p>
+            `;
+        } else if (score >= 36) {
+            resultArea.className = "result-warning";
+            html = `
+                <h2>⚠️ 성인 ADHD 가능성: 경계 구간</h2>
+                <div class="score-display">${score}점 <span style="font-size:0.5em; font-weight:normal; color:#666">/ 100점</span></div>
+                <hr style="border:0; border-top:1px solid #f6e05e; margin: 20px 0; opacity:0.5">
+                <p style="text-align: left; font-size: 0.95em;">
+                    기준점(46점)보다는 낮지만, 다수의 증상이 관찰됩니다.<br>
+                    현재 일상 생활에 불편함이 크다면 전문가의 도움을 받아보시는 것이 좋습니다.
+                </p>
+            `;
+        } else {
+            resultArea.className = "result-safe";
+            html = `
+                <h2>✅ 성인 ADHD 가능성: 낮음</h2>
+                <div class="score-display">${score}점 <span style="font-size:0.5em; font-weight:normal; color:#666">/ 100점</span></div>
+                <hr style="border:0; border-top:1px solid #68d391; margin: 20px 0; opacity:0.5">
+                <p style="text-align: left; font-size: 0.95em;">
+                    어린 시절의 ADHD 관련 증상이 기준치 이하입니다.<br>
+                    현재 겪고 계신 어려움은 ADHD보다는 스트레스, 불안, 환경적 요인 등 다른 원인일 가능성이 있습니다.
+                </p>
+            `;
+        }
+
+        resultArea.innerHTML = html;
+        resultArea.style.display = 'block';
+        
+        // 결과 화면으로 스크롤
+        setTimeout(() => {
+            resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    }
+
+    // 앱 실행
+    init();
+
+</script>
+
+</body>
+</html>
